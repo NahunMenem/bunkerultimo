@@ -1,0 +1,81 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id       Int    @id @default(autoincrement())
+  username String @unique
+  password String
+  role     String @default("user")
+
+  @@map("usuarios")
+}
+
+model Producto {
+  id              Int                 @id @default(autoincrement())
+  nombre          String
+  codigoBarras    String?             @unique @map("codigo_barras")
+  stock           Float               @default(0)
+  precio          Float               @default(0)
+  precioCosto     Float               @default(0) @map("precio_costo")
+  cantidadVendida Float               @default(0) @map("cantidad_vendida")
+  tipoStock       String              @default("unidad") @map("tipo_stock")
+  ventas          Venta[]
+  falladas        MercaderiaFallada[]
+
+  @@map("productos_bunker")
+}
+
+model Venta {
+  id           Int       @id @default(autoincrement())
+  productoId   Int?      @map("producto_id")
+  cantidad     Float
+  fecha        DateTime  @default(now())
+  nombreManual String?   @map("nombre_manual")
+  precioManual Float?    @map("precio_manual")
+  tipoPago     String    @map("tipo_pago")
+  dniCliente   String?   @map("dni_cliente")
+  total        Float?
+  producto     Producto? @relation(fields: [productoId], references: [id])
+
+  @@map("ventas_bunker")
+}
+
+model Reparacion {
+  id             Int      @id @default(autoincrement())
+  nombreServicio String   @map("nombre_servicio")
+  precio         Float
+  cantidad       Float    @default(1)
+  tipoPago       String   @map("tipo_pago")
+  dniCliente     String?  @map("dni_cliente")
+  fecha          DateTime @default(now())
+
+  @@map("reparaciones_bunker")
+}
+
+model Egreso {
+  id          Int      @id @default(autoincrement())
+  fecha       DateTime @default(now())
+  monto       Float
+  descripcion String
+  tipoPago    String   @map("tipo_pago")
+  categoria   String   @default("general")
+
+  @@map("egresos_bunker")
+}
+
+model MercaderiaFallada {
+  id          Int       @id @default(autoincrement())
+  productoId  Int?      @map("producto_id")
+  cantidad    Float
+  fecha       DateTime  @default(now())
+  descripcion String?
+  producto    Producto? @relation(fields: [productoId], references: [id])
+
+  @@map("mercaderia_fallada")
+}
